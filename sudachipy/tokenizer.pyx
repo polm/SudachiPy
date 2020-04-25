@@ -35,7 +35,7 @@ cdef void _build_lattice_c(object tokenizer, input_: UTF8InputText):
     cdef unsigned int length = len(bytes_)
     tokenizer._lattice.resize(length)
 
-    cdef unsigned int i, word_id, end
+    cdef unsigned int i, word_id, end, idx
     cdef bint has_words
     cdef LatticeNode n, node
     cdef object lexicon = tokenizer._lexicon
@@ -53,9 +53,9 @@ cdef void _build_lattice_c(object tokenizer, input_: UTF8InputText):
             has_words = True
 
             # Intern the get_info lookup process
-            word_id1 = 0x0FFFFFFF & word_id
             lex = lexicon.lexicons[word_id >> 28]
-            left_id, right_id, cost = lex.word_params.get_info(word_id1)
+            idx = (0x0FFFFFFF & word_id) * 3 # 3 is ELEMENT_SIZE_AS_SHORT
+            left_id, right_id, cost = lex.word_params._array_view[idx:idx+3]
 
             n = LatticeNode(lexicon, left_id, right_id, cost, word_id)
             lattice.insert(i, end, n)
