@@ -14,6 +14,13 @@
 
 from setuptools import setup, find_packages
 
+from distutils.extension import Extension
+
+extensions = [
+        Extension('sudachipy.latticenode', ['sudachipy/latticenode.pyx']),
+        Extension('sudachipy.lattice', ['sudachipy/lattice.pyx']),
+        ]
+
 setup(name="SudachiPy",
       use_scm_version=True,
       setup_requires=['setuptools_scm'],
@@ -33,4 +40,5 @@ setup(name="SudachiPy",
             "sortedcontainers~=2.1.0",
             'dartsclone~=0.9.0',
       ],
+      ext_modules=extensions,
       )

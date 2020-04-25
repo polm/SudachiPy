@@ -15,20 +15,20 @@
 from typing import List, Optional
 
 from .dictionarylib.grammar import Grammar
-from .latticenode import LatticeNode
+from .latticenode cimport LatticeNode
 
 
-class Lattice:
-
-    size = 0
-    capacity = 0
-    eos_node = None
+cdef class Lattice:
 
     def __init__(self, grammar: Grammar):
+        self.size = 0
+        self.capacity = 0
+        self.eos_node = None
+
         self.end_lists = []
         self.grammar = grammar
         self.eos_params = grammar.get_eos_parameter()
-        bos_node = LatticeNode()
+        cdef LatticeNode bos_node = LatticeNode()
         bos_params = grammar.get_bos_parameter()
         bos_node.set_parameter(bos_params[0], bos_params[1], bos_params[2])
         bos_node.is_connected_to_bos = True
@@ -87,7 +87,9 @@ class Lattice:
 
     def connect_node(self, r_node: LatticeNode) -> None:
         begin = r_node.begin
-        r_node.total_cost = float('inf')
+        # TODO use maxiint
+        r_node.total_cost = 2 ** 30
+        cdef LatticeNode l_node
         for l_node in self.end_lists[begin]:
             if not l_node.is_connected_to_bos:
                 continue
@@ -111,7 +113,7 @@ class Lattice:
         if not self.eos_node.is_connected_to_bos:    # EOS node
             raise AttributeError("EOS is not connected to BOS")
         result = []
-        node = self.eos_node.best_previous_node
+        cdef LatticeNode node = self.eos_node.best_previous_node
         while node is not self.end_lists[0][0]:
             result.append(node)
             node = node.best_previous_node
