@@ -1,5 +1,3 @@
-# cython: profile=True
-
 # Copyright (c) 2019 Works Applications Co., Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
