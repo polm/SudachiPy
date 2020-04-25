@@ -49,13 +49,12 @@ cdef void _build_lattice_c(object tokenizer, input_: UTF8InputText):
                 continue
             has_words = True
 
-            left_id, right_id, cost = lexicon.get_info(word_id)
+            # Intern the get_info lookup process
+            word_id1 = 0x0FFFFFFF & word_id
+            lex = lexicon.lexicons[word_id >> 28]
+            left_id, right_id, cost = lex.word_params.get_info(word_id1)
 
-            n = LatticeNode(lexicon,
-                            left_id,
-                            right_id,
-                            cost,
-                            word_id)
+            n = LatticeNode(lexicon, left_id, right_id, cost, word_id)
             lattice.insert(i, end, n)
 
         # OOV

@@ -59,13 +59,6 @@ class LexiconSet(Lexicon):
             .get_cost(self.get_word_id1(word_id))
 
     @lru_cache
-    def get_info(self, word_id: int):
-        lexicon = self.lexicons[self.get_dictionary_id(word_id)]
-        idx = self.get_word_id1(word_id)
-
-        return lexicon.word_params.get_info(idx)
-
-    @lru_cache
     def get_word_info(self, word_id: int) -> 'WordInfo':  # noqa: F821
         dic_id = self.get_dictionary_id(word_id)
         winfo = self.lexicons[dic_id].get_word_info(self.get_word_id1(word_id))
