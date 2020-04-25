@@ -15,6 +15,7 @@
 import math
 import re
 from queue import PriorityQueue
+from functools import lru_cache
 
 from . import categorytype
 
@@ -102,6 +103,7 @@ class CharacterCategory(object):
                 _range = irange
         self.range_list.append(_range)
 
+    @lru_cache(2056)
     def get_category_types(self, code_point):
         begin = 0
         n = len(self.range_list)
