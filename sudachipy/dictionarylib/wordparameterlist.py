@@ -46,6 +46,10 @@ class WordParameterList(object):
     def get_cost(self, word_id):
         return self._array_view[self.ELEMENT_SIZE_AS_SHORT * word_id + 2]
 
+    def get_info(self, word_id):
+        idx = self.ELEMENT_SIZE_AS_SHORT * word_id
+        return self._array_view[idx:idx+3]
+
     def set_cost(self, word_id, cost):
         # bytes_ must be ACCESS_COPY mode
         self._array_view[self.ELEMENT_SIZE_AS_SHORT * word_id + 2] = cost

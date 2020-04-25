@@ -69,7 +69,7 @@ cdef class Lattice:
                 min_arg = node
         return min_arg
 
-    def insert(self, begin: int, end: int, node: LatticeNode) -> None:
+    cdef void insert(self, int begin, int end, LatticeNode node):
         self.end_lists[end].append(node)
         node.begin = begin
         node.end = end
@@ -86,16 +86,18 @@ cdef class Lattice:
         return bool(self.end_lists[index])
 
     def connect_node(self, r_node: LatticeNode) -> None:
-        begin = r_node.begin
+        cdef int begin = r_node.begin
         # TODO use maxiint
         r_node.total_cost = 2 ** 30
         cdef LatticeNode l_node
+        cdef int connect_cost, cost
         for l_node in self.end_lists[begin]:
             if not l_node.is_connected_to_bos:
                 continue
             # right_id and left_id look reversed, but it works ...
             connect_cost = self.grammar.get_connect_cost(l_node.right_id, r_node.left_id)
-            if connect_cost == Grammar.INHIBITED_CONNECTION:
+            #if connect_cost == Grammar.INHIBITED_CONNECTION:
+            if connect_cost == 0x7fff:
                 continue
             cost = l_node.total_cost + connect_cost
             if cost < r_node.total_cost:

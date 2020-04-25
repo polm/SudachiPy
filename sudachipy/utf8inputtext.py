@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from functools import lru_cache
 
 class UTF8InputText:
     def __init__(self, grammar, original_text, modified_text, bytes_, offsets, byte_indexes, char_categories, char_category_continuities, can_bow_list=None):
@@ -76,6 +76,7 @@ class UTF8InputText:
             length += 1
         return length
 
+    @lru_cache
     def can_bow(self, idx: int) -> bool:
         return self.is_char_alignment(idx) and self.can_bow_list[self.byte_indexes[idx]]
 

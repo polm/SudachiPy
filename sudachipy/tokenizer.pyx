@@ -20,14 +20,58 @@ from typing import List
 from .dictionarylib.categorytype import CategoryType
 from .dictionarylib.grammar import Grammar
 from .dictionarylib.lexicon import Lexicon
-from .lattice import Lattice
-from .latticenode import LatticeNode
+from .lattice cimport Lattice
+from .latticenode cimport LatticeNode
 from .morphemelist import MorphemeList
 from .plugin.input_text import InputTextPlugin
 from .plugin.path_rewrite import PathRewritePlugin
 from .utf8inputtext import UTF8InputText
 from .utf8inputtextbuilder import UTF8InputTextBuilder
 
+cdef void _build_lattice_c(object tokenizer, input_: UTF8InputText):
+    cdef bytes bytes_ = input_.get_byte_text()
+    cdef unsigned int length = len(bytes_)
+    tokenizer._lattice.resize(length)
+
+    cdef unsigned int i, word_id, end
+    cdef bint has_words
+    cdef LatticeNode n, node
+    cdef object lexicon = tokenizer._lexicon
+    cdef Lattice lattice = tokenizer._lattice
+    cdef int left_id, right_id, cost
+    for i in range(length):
+        if not input_.can_bow(i) or not tokenizer._lattice.has_previous_node(i):
+            continue
+        iterator = tokenizer._lexicon.lookup(bytes_, i)
+        has_words = False
+        for word_id, end in iterator:
+            if (end < length) and (not input_.can_bow(end)):
+                continue
+            has_words = True
+
+            left_id, right_id, cost = lexicon.get_info(word_id)
+
+            n = LatticeNode(lexicon,
+                            left_id,
+                            right_id,
+                            cost,
+                            word_id)
+            lattice.insert(i, end, n)
+
+        # OOV
+        if CategoryType.NOOOVBOW not in input_.get_char_category_types(i):
+            for oov_plugin in tokenizer._oov_provider_plugins:
+                for node in oov_plugin.get_oov(input_, i, has_words):
+                    has_words = True
+                    lattice.insert(node.begin, node.end, node)
+        if not has_words and tokenizer.default_oov_provider:
+            for node in tokenizer.default_oov_provider.get_oov(input_, i, has_words):
+                has_words = True
+                lattice.insert(node.begin, node.end, node)
+
+        if not has_words:
+            raise RuntimeError("there is no morpheme at " + str(i))
+    tokenizer._lattice.connect_eos_node()
 
 class Tokenizer:
     """ tokenizer of morphological analysis
@@ -124,38 +168,7 @@ class Tokenizer:
         return ml
 
     def _build_lattice(self, input_: UTF8InputText):
-        bytes_ = input_.get_byte_text()
-        self._lattice.resize(len(bytes_))
-        for i in range(len(bytes_)):
-            if not input_.can_bow(i) or not self._lattice.has_previous_node(i):
-                continue
-            iterator = self._lexicon.lookup(bytes_, i)
-            has_words = False
-            for word_id, end in iterator:
-                if (end < len(bytes_)) and (not input_.can_bow(end)):
-                    continue
-                has_words = True
-                n = LatticeNode(self._lexicon,
-                                self._lexicon.get_left_id(word_id),
-                                self._lexicon.get_right_id(word_id),
-                                self._lexicon.get_cost(word_id),
-                                word_id)
-                self._lattice.insert(i, end, n)
-
-            # OOV
-            if CategoryType.NOOOVBOW not in input_.get_char_category_types(i):
-                for oov_plugin in self._oov_provider_plugins:
-                    for node in oov_plugin.get_oov(input_, i, has_words):
-                        has_words = True
-                        self._lattice.insert(node.get_begin(), node.get_end(), node)
-            if not has_words and self.default_oov_provider:
-                for node in self.default_oov_provider.get_oov(input_, i, has_words):
-                    has_words = True
-                    self._lattice.insert(node.get_begin(), node.get_end(), node)
-
-            if not has_words:
-                raise RuntimeError("there is no morpheme at " + str(i))
-        self._lattice.connect_eos_node()
+        _build_lattice_c(self, input_)
 
     def _split_path(self, path: List[LatticeNode], mode: SplitMode) -> List[LatticeNode]:
         if mode == self.SplitMode.C:

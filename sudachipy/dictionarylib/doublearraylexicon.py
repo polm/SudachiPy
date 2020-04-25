@@ -71,6 +71,9 @@ class DoubleArrayLexicon(Lexicon):
     def get_cost(self, word_id: int) -> int:
         return self.word_params.get_cost(word_id)
 
+    def get_info(self, word_id: int):
+        return self.word_params.get_info(word_id)
+
     def get_word_info(self, word_id: int) -> 'WordInfo':  # noqa: F821
         return self.word_infos.get_word_info(word_id)
 

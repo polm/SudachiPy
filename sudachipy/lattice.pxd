@@ -10,3 +10,5 @@ cdef class Lattice:
     cdef list end_lists
     cdef object grammar
     cdef object eos_params # what is this?
+
+    cdef void insert(self, int begin, int end, LatticeNode node)
