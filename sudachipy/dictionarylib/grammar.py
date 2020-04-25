@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import lru_cache
-
 class Grammar:
     INHIBITED_CONNECTION = 0x7fff
 
@@ -61,7 +59,6 @@ class Grammar:
     def get_part_of_speech_id(self, pos):
         return self.pos_list.index(pos) if pos in self.pos_list else -1
 
-    @lru_cache(1024)
     def get_connect_cost(self, left: int, right: int) -> int:
         """ Returns connection cost of nodes
 

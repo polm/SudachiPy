@@ -12,3 +12,4 @@ cdef class Lattice:
     cdef object eos_params # what is this?
 
     cdef void insert(self, int begin, int end, LatticeNode node)
+    cdef void connect_node(self, LatticeNode r_node)

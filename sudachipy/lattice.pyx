@@ -85,7 +85,7 @@ cdef class Lattice:
     def has_previous_node(self, index: int) -> bool:
         return bool(self.end_lists[index])
 
-    def connect_node(self, r_node: LatticeNode) -> None:
+    cdef void connect_node(self, r_node: LatticeNode):
         cdef int begin = r_node.begin
         # TODO use maxiint
         r_node.total_cost = 2 ** 30
@@ -94,10 +94,9 @@ cdef class Lattice:
         for l_node in self.end_lists[begin]:
             if not l_node.is_connected_to_bos:
                 continue
-            # right_id and left_id look reversed, but it works ...
-            connect_cost = self.grammar.get_connect_cost(l_node.right_id, r_node.left_id)
-            #if connect_cost == Grammar.INHIBITED_CONNECTION:
-            if connect_cost == 0x7fff:
+
+            connect_cost = self.grammar._matrix_view[l_node.right_id, r_node.left_id]
+            if connect_cost == 0x7fff: # Grammar.INHIBITED_CONNECTION
                 continue
             cost = l_node.total_cost + connect_cost
             if cost < r_node.total_cost:
