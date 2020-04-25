@@ -39,10 +39,11 @@ cdef void _build_lattice_c(object tokenizer, input_: UTF8InputText):
     cdef object lexicon = tokenizer._lexicon
     cdef Lattice lattice = tokenizer._lattice
     cdef int left_id, right_id, cost
+
     for i in range(length):
-        if not input_.can_bow(i) or not tokenizer._lattice.has_previous_node(i):
+        if not input_.can_bow(i) or not lattice.has_previous_node(i):
             continue
-        iterator = tokenizer._lexicon.lookup(bytes_, i)
+        iterator = lexicon.lookup(bytes_, i)
         has_words = False
         for word_id, end in iterator:
             if (end < length) and (not input_.can_bow(end)):
@@ -57,12 +58,14 @@ cdef void _build_lattice_c(object tokenizer, input_: UTF8InputText):
             n = LatticeNode(lexicon, left_id, right_id, cost, word_id)
             lattice.insert(i, end, n)
 
+        # XXX This is slow
         # OOV
         if CategoryType.NOOOVBOW not in input_.get_char_category_types(i):
             for oov_plugin in tokenizer._oov_provider_plugins:
                 for node in oov_plugin.get_oov(input_, i, has_words):
                     has_words = True
                     lattice.insert(node.begin, node.end, node)
+
         if not has_words and tokenizer.default_oov_provider:
             for node in tokenizer.default_oov_provider.get_oov(input_, i, has_words):
                 has_words = True
