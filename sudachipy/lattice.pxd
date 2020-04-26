@@ -9,7 +9,7 @@ cdef class Lattice:
 
     cdef list end_lists
     cdef object grammar
-    cdef object eos_params # what is this?
+    cdef object eos_params
 
     cdef void insert(self, int begin, int end, LatticeNode node)
     cdef void connect_node(self, LatticeNode r_node)
