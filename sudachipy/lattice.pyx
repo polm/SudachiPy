@@ -29,6 +29,7 @@ cdef class Lattice:
 
         self.end_lists = []
         self.grammar = grammar
+        self.connect_costs = grammar._matrix_view
         self.eos_params = grammar.get_eos_parameter()
         cdef LatticeNode bos_node = LatticeNode()
         bos_params = grammar.get_bos_parameter()
@@ -93,13 +94,12 @@ cdef class Lattice:
         r_node.total_cost = 2 ** 30
         cdef LatticeNode l_node
         cdef int connect_cost, cost
-        cdef const short[:,:] connect_costs = self.grammar._matrix_view
 
         for l_node in self.end_lists[begin]:
             if not l_node.is_connected_to_bos:
                 continue
 
-            connect_cost = connect_costs[l_node.right_id, r_node.left_id]
+            connect_cost = self.connect_costs[l_node.right_id, r_node.left_id]
             if connect_cost == 0x7fff: # Grammar.INHIBITED_CONNECTION
                 continue
             cost = l_node.total_cost + connect_cost
