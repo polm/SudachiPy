@@ -32,7 +32,6 @@ cdef class Lattice:
         bos_node.set_parameter(bos_params[0], bos_params[1], bos_params[2])
         bos_node.is_connected_to_bos = True
         self.end_lists.append([bos_node])
-        self.connect_costs = self.grammar._matrix_view
 
     cpdef void resize(self, int size):
         if size > self.capacity:
@@ -91,11 +90,12 @@ cdef class Lattice:
 
         cdef LatticeNode l_node
         cdef int connect_cost
+        cdef const short[:,:] connect_costs = self.grammar._matrix_view
         for l_node in self.end_lists[begin]:
             if not l_node.is_connected_to_bos:
                 continue
             # right_id and left_id look reversed, but it works ...
-            connect_cost = self.connect_costs[l_node.right_id, r_node.left_id]
+            connect_cost = connect_costs[l_node.right_id, r_node.left_id]
 
             # 0x7fff == Grammar.INHIBITED_CONNECTION:
             if connect_cost == 0x7fff:

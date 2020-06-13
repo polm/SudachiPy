@@ -12,7 +12,6 @@ cdef class Lattice:
     cdef list end_lists
     cdef object grammar
     cdef object eos_params
-    cdef const short[:,:] connect_costs
 
     cpdef void resize(self, int size)
     cpdef void insert(self, int begin, int end, LatticeNode node)
